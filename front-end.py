@@ -19,8 +19,21 @@ resolucao = (500, 650) # resolucao do programa
 titulo = "APS UNIP - Ciência da Computação v1.0" # titulo da janela
 sg.theme("Black") # paleta de cores da janela
 
-iteracao_clique = 0 # define se é a primeira vez que o botão tá sendo apertado ou não,
-                    # para exibir o popup de comparação
+# variavel que controla o update dos itens da janela
+precisa_atualizar = False
+
+# listas para salvar dados
+valores_atuais_gasolina = []
+valores_atuais_alcool = []
+valores_atuais_diesel = []
+valores_atuais_eletrico = []
+
+valores_propostos_gasolina = []
+valores_propostos_alcool = []
+valores_propostos_diesel = []
+valores_propostos_eletrico = []
+
+lista_listas = []
 
 #____________IMAGENS DOS BOTÕES__________________
 # Não é possível colocar imagens nos botões como nos layouts.
@@ -50,9 +63,9 @@ layout_titulo = [
                  [sg.Text("SELECIONE A RESOLUÇÃO DO PROGRAMA", font=fonte, size=(100,2),
                           justification='center')],
                  [sg.Image('logo2.png', pad=20)],
-                 [sg.Radio('Resolução 1: 1200x700', "RADIO1", default=False,
+                 [sg.Radio('Resolução 1: 1300x720', "RADIO1", default=False,
                            size=(22, 4), font=fonte, key="RES1")],
-                 [sg.Radio('Resolução 2: 1000x600', "RADIO1", default=True,
+                 [sg.Radio('Resolução 2: 1200x700', "RADIO1", default=True,
                            size=(22, 4), font=fonte, key="RES2")],
                  [sg.Button('FECHAR', font=fonte, key="FECHAR1_KEY", size=(8,1), pad=20),
                   sg.Button('INICIAR', font=fonte, key="INICIAR_KEY", size=(8,1), pad=20)],
@@ -71,23 +84,14 @@ layout_menu = [
               
 layout_relatorios = [
                      [
-                     sg.Image('bannerpeq.png', size=(300, 150), pad=1),
-                     sg.Text("DADOS DA FROTA ATUAL", font=fonte, size=(25,1),
-                          justification='center', pad=5),
-                     sg.Text("FROTA PROPOSTA", font=fonte, size=(25,1),
-                          justification='center', pad=5),
-                     sg.Text("COMPARAÇÃO", font=fonte, size=(25,1),
-                          justification='center', pad=5),
-                     ],
-                     [
                      sg.Text("INSIRA OS DADOS CORRESPONDENTES À FROTA:", font=fonte, size=(25,2),
-                            justification='left', pad=5),                     
-                     sg.Text("", font=fonte, size=(25,1),
+                          justification='left', pad=5), 
+                     sg.Text("DADOS DA FROTA ATUAL     (QTD / CUSTO / CO2 / COE):", font=fonte, size=(25,2),
                           justification='center', pad=5),
-                     sg.Text("", font=fonte, size=(25,1),
+                     sg.Text("FROTA PROPOSTA                (QTD / CUSTO / CO2 / COE):", font=fonte, size=(25,2),
                           justification='center', pad=5),
-                     sg.Text("", font=fonte, size=(25,1),
-                          justification='center', pad=5),
+                     sg.Text("COMPARAÇÃO                        (QTD / CUSTO / CO2 / COE):", font=fonte, size=(25,2),
+                          justification='center', pad=5),                    
                      ],
                      [
                      sg.Text("GASOLINA:", font=fonte, size=(25,2),
@@ -100,17 +104,85 @@ layout_relatorios = [
                           justification='center', pad=5),
                      ],
                      [
-                     sg.Input("", font=fonte, size=(25,2),
+                     sg.Input("", font=fonte, size=(25,3),
+                            justification='left', pad=5, key="INPUT_1_KEY"),                     
+                     sg.Text("-", font=fonte, size=(25,3),
+                          justification='center', pad=5, key="TEXTO_GAS_ATUAL_KEY"),
+                     sg.Text("-", font=fonte, size=(25,3),
+                          justification='center', pad=5, key="TEXTO_GAS_PROPOSTO_KEY"),
+                     sg.Text("-", font=fonte, size=(25,3),
+                          justification='center', pad=5, key="COMPARACAO_GAS_KEY"),
+                     ],
+                     [
+                     sg.Text("ÁLCOOL:", font=fonte, size=(25,2),
                             justification='left', pad=5),                     
-                     sg.Text("GASOLINA", font=fonte, size=(25,1),
+                     sg.Text("ÁLCOOL:", font=fonte, size=(25,1),
                           justification='center', pad=5),
-                     sg.Text("GASOLINA", font=fonte, size=(25,1),
+                     sg.Text("ÁLCOOL:", font=fonte, size=(25,1),
                           justification='center', pad=5),
-                     sg.Text("GASOLINA", font=fonte, size=(25,1),
+                     sg.Text("ÁLCOOL:", font=fonte, size=(25,1),
                           justification='center', pad=5),
                      ],
-
-
+                     [
+                     sg.Input("", font=fonte, size=(25,3),
+                            justification='left', pad=5, key="INPUT_2_KEY"),                     
+                     sg.Text("-", font=fonte, size=(25,3),
+                          justification='center', pad=5, key="TEXTO_ALCOOL_ATUAL_KEY"),
+                     sg.Text("-", font=fonte, size=(25,3),
+                          justification='center', pad=5, key="TEXTO_ALCOOL_PROPOSTO_KEY"),
+                     sg.Text("-", font=fonte, size=(25,3),
+                          justification='center', pad=5, key="COMPARACAO_ALCOOL_KEY"),
+                     ],
+                     [
+                     sg.Text("DIESEL:", font=fonte, size=(25,2),
+                            justification='left', pad=5),                     
+                     sg.Text("DIESEL:", font=fonte, size=(25,1),
+                          justification='center', pad=5),
+                     sg.Text("DIESEL:", font=fonte, size=(25,1),
+                          justification='center', pad=5),
+                     sg.Text("DIESEL:", font=fonte, size=(25,1),
+                          justification='center', pad=5),
+                     ],
+                     [
+                     sg.Input("", font=fonte, size=(25,3),
+                            justification='left', pad=5, key="INPUT_3_KEY"),                     
+                     sg.Text("-", font=fonte, size=(25,3),
+                          justification='center', pad=5, key="TEXTO_DIESEL_ATUAL_KEY"),
+                     sg.Text("-", font=fonte, size=(25,3),
+                          justification='center', pad=5, key="TEXTO_DIESEL_PROPOSTO_KEY"),
+                     sg.Text("-", font=fonte, size=(25,3),
+                          justification='center', pad=5, key="COMPARACAO_DIESEL_KEY"),
+                     ],
+                     [
+                     sg.Text("ELÉTRICO:", font=fonte, size=(25,2),
+                            justification='left', pad=5),                     
+                     sg.Text("ELÉTRICO:", font=fonte, size=(25,1),
+                          justification='center', pad=5),
+                     sg.Text("ELÉTRICO:", font=fonte, size=(25,1),
+                          justification='center', pad=5),
+                     sg.Text("ELÉTRICO:", font=fonte, size=(25,1),
+                          justification='center', pad=5),
+                     ],
+                     [
+                     sg.Input("", font=fonte, size=(25,3),
+                            justification='left', pad=5, key="INPUT_4_KEY"),                     
+                     sg.Text("-", font=fonte, size=(25,3),
+                          justification='center', pad=5, key="TEXTO_ELETRICO_ATUAL_KEY"),
+                     sg.Text("-", font=fonte, size=(25,3),
+                          justification='center', pad=5, key="TEXTO_ELETRICO_PROPOSTO_KEY"),
+                     sg.Text("-", font=fonte, size=(25,3),
+                          justification='center', pad=5, key="COMPARACAO_ELETRICO_KEY"),
+                     ],
+                     [
+                     sg.Text("", font=fonte, size=(25,1),
+                          justification='center', pad=5),
+                     ],
+                     [
+                     sg.Button('VOLTAR', font=fonte, key="VOLTAR_RELATORIOS_KEY", size=(25,1)),                  
+                     sg.Button('CADASTRAR DADOS', font=fonte, key="INPUT_ATUAIS_KEY", size=(25,1)), 
+                     sg.Button('CADASTRAR DADOS', font=fonte, key="INPUT_PROPOSTOS_KEY", size=(25,1)), 
+                     sg.Button('CONCLUIR', font=fonte, key="CONCLUIR_KEY", size=(25,1)), 
+                     ],
                     ]
 
 layout_editar =  [
@@ -162,10 +234,10 @@ while True:
         # ifs para a troca de resolução da tela___________________________________________
 
         if valores["RES1"] is True:
-            resolucao = (1200, 700)
+            resolucao = (1300, 720)
 
         if valores["RES2"] is True:
-            resolucao = (1000, 600)
+            resolucao = (1200, 700)
 
         # elif valores["RES3"] is True:
         #    resolucao = (1600, 900)
@@ -196,28 +268,95 @@ while True:
         janela = sg.Window(titulo, layout,
                            element_justification='c', size=resolucao) # abre uma nova janela
 
-    if eventos == "GERAR_RESULTADO_KEY":
-        if iteracao_clique == 0:
-            print('Primeiro clique!')
-            sg.Popup(
+    if eventos == "CONCLUIR_KEY":
+            sg.popup_yes_no(
                 """
-                DESEJA [...]
+                Deseja adquirir créditos de compensação?
                 """
                     )
-            iteracao_clique = 1
 
-        else:
-            sg.Popup(
-                """
-                DESEJA [...]
-                """
-                    )
-    if eventos == "EXIBIR_NUMEROS_KEY":
-            sg.Popup(
-                """
-                NUMEROS ATUAIS [...]
-                """
-                    )
+    if eventos == "INPUT_ATUAIS_KEY":
+        update_gasolina = funcoes.consumo_co2_gasolina(int(valores['INPUT_1_KEY']))
+        texto_novo_gasolina = f"""{int(valores["INPUT_1_KEY"])} / {update_gasolina[0]} R$ /\n {update_gasolina[1]} T / {update_gasolina[2]} COE"""
+        janela["TEXTO_GAS_ATUAL_KEY"].update(texto_novo_gasolina)
+
+        update_alcool = funcoes.consumo_co2_alcool(int(valores['INPUT_2_KEY']))
+        texto_novo_alcool = f"""{int(valores["INPUT_2_KEY"])} / {update_alcool[0]} R$ /\n {update_alcool[1]} T / {update_alcool[2]} COE"""
+        janela["TEXTO_ALCOOL_ATUAL_KEY"].update(texto_novo_alcool)
+
+        update_diesel = funcoes.consumo_co2_diesel(int(valores['INPUT_3_KEY']))
+        texto_novo_diesel = f"""{int(valores["INPUT_3_KEY"])} / {update_diesel[0]} R$ /\n {update_diesel[1]} T / {update_diesel[2]} COE"""
+        janela["TEXTO_DIESEL_ATUAL_KEY"].update(texto_novo_diesel)
+
+        update_eletrico = funcoes.consumo_co2_eletrico(int(valores['INPUT_4_KEY']))
+        texto_novo_eletrico = f"""{int(valores["INPUT_4_KEY"])} / {update_eletrico[0]} R$ /\n {update_eletrico[1]} T / {update_eletrico[2]} COE"""
+        janela["TEXTO_ELETRICO_ATUAL_KEY"].update(texto_novo_eletrico)
+
+        valores_atuais_gasolina = [valores["INPUT_1_KEY"], update_gasolina[0], update_gasolina[1], update_gasolina[2]]
+        valores_atuais_alcool = [valores["INPUT_2_KEY"], update_alcool[0], update_alcool[1], update_alcool[2]]
+        valores_atuais_diesel = [valores["INPUT_3_KEY"], update_diesel[0], update_diesel[1], update_diesel[2]]
+        valores_atuais_eletrico = [valores["INPUT_4_KEY"], update_eletrico[0], update_eletrico[1], update_eletrico[2]]
+
+        lista_listas = [valores_atuais_gasolina, valores_atuais_alcool,  valores_atuais_diesel, valores_atuais_eletrico,
+                        valores_propostos_gasolina, valores_propostos_alcool, valores_propostos_diesel, valores_propostos_eletrico]
+
+        precisa_atualizar = True
+
+        for lista in lista_listas:
+            if len(lista) != 4:
+                precisa_atualizar = False
+
+    if eventos == "INPUT_PROPOSTOS_KEY":
+        update_gasolina = funcoes.consumo_co2_gasolina(int(valores['INPUT_1_KEY']))
+        texto_novo_gasolina = f"""{int(valores["INPUT_1_KEY"])} / {update_gasolina[0]} R$ /\n {update_gasolina[1]} T / {update_gasolina[2]} COE"""
+        janela["TEXTO_GAS_PROPOSTO_KEY"].update(texto_novo_gasolina)
+
+        update_alcool = funcoes.consumo_co2_alcool(int(valores['INPUT_2_KEY']))
+        texto_novo_alcool = f"""{int(valores["INPUT_2_KEY"])} / {update_alcool[0]} R$ /\n {update_alcool[1]} T / {update_alcool[2]} COE"""
+        janela["TEXTO_ALCOOL_PROPOSTO_KEY"].update(texto_novo_alcool)
+
+        update_diesel = funcoes.consumo_co2_diesel(int(valores['INPUT_3_KEY']))
+        texto_novo_diesel = f"""{int(valores["INPUT_3_KEY"])} / {update_diesel[0]} R$ /\n {update_diesel[1]} T / {update_diesel[2]} COE"""
+        janela["TEXTO_DIESEL_PROPOSTO_KEY"].update(texto_novo_diesel)
+
+        update_eletrico = funcoes.consumo_co2_eletrico(int(valores['INPUT_4_KEY']))
+        texto_novo_eletrico = f"""{int(valores["INPUT_4_KEY"])} / {update_eletrico[0]} R$ /\n {update_eletrico[1]} T / {update_eletrico[2]} COE"""
+        janela["TEXTO_ELETRICO_PROPOSTO_KEY"].update(texto_novo_eletrico)
+
+        valores_propostos_gasolina = [valores["INPUT_1_KEY"], update_gasolina[0], update_gasolina[1], update_gasolina[2]]
+        valores_propostos_alcool = [valores["INPUT_2_KEY"], update_alcool[0], update_alcool[1], update_alcool[2]]
+        valores_propostos_diesel = [valores["INPUT_3_KEY"], update_diesel[0], update_diesel[1], update_diesel[2]]
+        valores_propostos_eletrico = [valores["INPUT_4_KEY"], update_eletrico[0], update_eletrico[1], update_eletrico[2]]
+
+        lista_listas = [valores_atuais_gasolina, valores_atuais_alcool,  valores_atuais_diesel, valores_atuais_eletrico,
+                        valores_propostos_gasolina, valores_propostos_alcool, valores_propostos_diesel, valores_propostos_eletrico]
+
+        precisa_atualizar = True
+
+        for lista in lista_listas:
+            if len(lista) != 4:
+                precisa_atualizar = False
+
+    if precisa_atualizar is True:
+        comparacao_gasolina = funcoes.comparacao(valores_atuais_gasolina, valores_propostos_gasolina)
+        texto_novo_comparacao_gasolina = comparacao_gasolina
+        janela["COMPARACAO_GAS_KEY"].update(texto_novo_comparacao_gasolina)
+
+        comparacao_alcool = funcoes.comparacao(valores_atuais_alcool, valores_propostos_alcool)
+        texto_novo_comparacao_alcool = comparacao_alcool
+        janela["COMPARACAO_ALCOOL_KEY"].update(texto_novo_comparacao_alcool)
+
+        comparacao_diesel = funcoes.comparacao(valores_atuais_diesel, valores_propostos_diesel)
+        texto_novo_comparacao_diesel = comparacao_diesel
+        janela["COMPARACAO_DIESEL_KEY"].update(texto_novo_comparacao_diesel)
+
+        comparacao_eletrico = funcoes.comparacao(valores_atuais_eletrico, valores_propostos_eletrico)
+        texto_novo_comparacao_eletrico = comparacao_eletrico
+        janela["COMPARACAO_ELETRICO_KEY"].update(texto_novo_comparacao_eletrico)
+
+
+    
+    precisa_atualizar = False # essa variável precisa ficar no final do loop!
 
     # ________________________________________________________________________________
 
